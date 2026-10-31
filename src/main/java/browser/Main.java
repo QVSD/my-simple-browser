@@ -2,20 +2,13 @@ package browser;
 
 import java.lang.Integer;
 import browser.url.Url;
-/**
- *
- * http://example.com
- * http://example.com/
- * http://example.com/test
- * http://example.com:8080/test
- *
- * trebuie sa parsam aceste url uri si in final sa producem :
- * scheme = http
- * host = example.com
- * port = 80 / 8080
- * path = /
- *
- **/
+import browser.network.SystemDnsResolver;
+import browser.network.DnsResolver;
+import java.net.InetAddress;
+import java.util.List;
+import java.util.Arrays;
+import java.net.UnknownHostException;
+
 
 public class Main {
     enum State{
@@ -26,6 +19,7 @@ public class Main {
         PORT,
         PATH
     }
+    private static final DnsResolver resolver = new SystemDnsResolver();
 
     public static void main(String[] args){
         if(args.length < 1){
@@ -39,10 +33,24 @@ public class Main {
           Url parsedUrl = parseUrl(url);
           System.out.println("Path : " + url);
           parsedUrl.printUrlComponents();
+          printResolvedHosts(parsedUrl.host);
         }
         catch (IllegalArgumentException e){
             System.out.println("Reverifica integritatea linkului: " + e.getMessage());
 
+        }
+
+     }
+
+    public static void printResolvedHosts(String host){
+        try { 
+            List<InetAddress> addresses = resolver.resolve(host);
+            for(InetAddress inetAddr : addresses){
+                System.out.println(inetAddr.getHostAddress());
+            }
+        }
+        catch (UnknownHostException e){
+            System.out.println("Hostul " + host + " nu a putut fi identificat");
         }
     }
 
